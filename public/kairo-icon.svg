@@ -1,54 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Kairo">
-  <defs>
-    <linearGradient id="bg" x1="18" y1="8" x2="110" y2="120" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#2A2A2A"/>
-      <stop offset="100%" stop-color="#111111"/>
-    </linearGradient>
-    <linearGradient id="screenGlow" x1="28" y1="26" x2="100" y2="78" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FFF7F2"/>
-      <stop offset="100%" stop-color="#F0E4DC"/>
-    </linearGradient>
-    <linearGradient id="pipFill" x1="78" y1="78" x2="118" y2="118" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FF8A6A"/>
-      <stop offset="100%" stop-color="#E85D4C"/>
-    </linearGradient>
-    <radialGradient id="pipFace" cx="46%" cy="40%" r="62%">
-      <stop offset="0%" stop-color="#FFE8D8"/>
-      <stop offset="100%" stop-color="#F4C9B0"/>
-    </radialGradient>
-    <filter id="soft" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="4" stdDeviation="3.5" flood-color="#000000" flood-opacity="0.28"/>
-    </filter>
-  </defs>
-
-  <!-- App tile -->
-  <rect width="128" height="128" rx="32" fill="url(#bg)"/>
-
-  <!-- Subtle inner sheen -->
-  <path d="M32 10h64a22 22 0 0 1 22 22v18H10V32A22 22 0 0 1 32 10Z" fill="#ffffff" opacity="0.05"/>
-
-  <!-- Screen -->
-  <g filter="url(#soft)">
-    <rect x="22" y="28" width="84" height="56" rx="14" fill="#3A3A3A"/>
-    <rect x="28" y="34" width="72" height="44" rx="10" fill="url(#screenGlow)"/>
-    <!-- Minimal UI lines suggesting content -->
-    <rect x="38" y="44" width="28" height="5" rx="2.5" fill="#E85D4C" opacity="0.85"/>
-    <rect x="38" y="54" width="42" height="4" rx="2" fill="#1A1A1A" opacity="0.18"/>
-    <rect x="38" y="63" width="34" height="4" rx="2" fill="#1A1A1A" opacity="0.12"/>
-  </g>
-
-  <!-- Stand hint -->
-  <path d="M54 84h20l4 8H50l4-8Z" fill="#2C2C2C"/>
-  <rect x="44" y="92" width="40" height="5" rx="2.5" fill="#242424"/>
-
-  <!-- Circular PiP -->
-  <g filter="url(#soft)">
-    <circle cx="94" cy="94" r="24" fill="url(#pipFill)"/>
-    <circle cx="94" cy="94" r="18" fill="url(#pipFace)"/>
-    <!-- Simple face, calm and modern -->
-    <circle cx="88" cy="91" r="2.4" fill="#2A2A2A"/>
-    <circle cx="100" cy="91" r="2.4" fill="#2A2A2A"/>
-    <path d="M88.5 100c2.2 2.8 8.8 2.8 11 0" fill="none" stroke="#2A2A2A" stroke-width="2.4" stroke-linecap="round"/>
-    <circle cx="94" cy="94" r="24" fill="none" stroke="#FFFFFF" stroke-width="3.5"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Kairo - Demo video recorder" fill="none">
+  <!-- Transparent mark: open screen frame + lens, no app tile -->
+  <path
+    d="M18 34c0-7.732 6.268-14 14-14h52c7.732 0 14 6.268 14 14v8.5"
+    stroke="#1A1A1A"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M18 34v36c0 7.732 6.268 14 14 14h20"
+    stroke="#1A1A1A"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Lens / PiP -->
+  <circle cx="86" cy="82" r="30" fill="#E85D4C"/>
+  <circle cx="86" cy="82" r="18" fill="#FFFFFF"/>
+  <circle cx="86" cy="82" r="8" fill="#1A1A1A"/>
+  <!-- Rec pulse -->
+  <circle cx="34" cy="48" r="6" fill="#E85D4C"/>
 </svg>
