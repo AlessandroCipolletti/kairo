@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Kairo">
+  <defs>
+    <linearGradient id="bg" x1="18" y1="8" x2="110" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2A2A2A"/>
+      <stop offset="100%" stop-color="#111111"/>
+    </linearGradient>
+    <linearGradient id="screenGlow" x1="28" y1="26" x2="100" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFF7F2"/>
+      <stop offset="100%" stop-color="#F0E4DC"/>
+    </linearGradient>
+    <linearGradient id="pipFill" x1="78" y1="78" x2="118" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF8A6A"/>
+      <stop offset="100%" stop-color="#E85D4C"/>
+    </linearGradient>
+    <radialGradient id="pipFace" cx="46%" cy="40%" r="62%">
+      <stop offset="0%" stop-color="#FFE8D8"/>
+      <stop offset="100%" stop-color="#F4C9B0"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="32" fill="url(#bg)"/>
+  <rect x="22" y="28" width="84" height="56" rx="14" fill="#3A3A3A"/>
+  <rect x="28" y="34" width="72" height="44" rx="10" fill="url(#screenGlow)"/>
+  <rect x="38" y="44" width="28" height="5" rx="2.5" fill="#E85D4C"/>
+  <circle cx="94" cy="94" r="24" fill="url(#pipFill)"/>
+  <circle cx="94" cy="94" r="18" fill="url(#pipFace)"/>
+  <circle cx="94" cy="94" r="24" fill="none" stroke="#FFFFFF" stroke-width="3.5"/>
+</svg>

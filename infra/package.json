@@ -1,0 +1,20 @@
+{
+  "name": "kairo-infra",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.210.0",
+    "constructs": "^10.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "aws-cdk": "^2.1100.1",
+    "tsx": "^4.20.5",
+    "typescript": "~5.9.2"
+  }
+}
