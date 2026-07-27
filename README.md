@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/kairo-icon.svg" alt="Kairo - Demo video recorder" width="120" height="120" />
+  <img src="./public/kairo-mark.svg" alt="Kairo - Demo video recorder" width="120" height="120" />
 </p>
 
 <h1 align="center">Kairo - Demo video recorder</h1>

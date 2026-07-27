@@ -163,7 +163,7 @@ export default function App() {
       <div className="atmosphere" aria-hidden="true" />
 
       <header className="hero">
-        <img className="brand-mark" src="/kairo-icon.svg" alt="" width={44} height={44} />
+        <img className="brand-mark" src="/kairo-mark.svg" alt="" width={44} height={44} />
         <h1>Kairo - Demo video recorder</h1>
       </header>
 
