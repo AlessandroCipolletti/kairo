@@ -10,7 +10,7 @@ export type ConvertProgress = {
 }
 
 export type ConvertOptions = {
-  /** Recording length in ms — used when ffmpeg cannot infer total duration. */
+  /** Recording length in ms — source of truth for convert % (WebM has no duration). */
   durationMs?: number
   onProgress?: (info: ConvertProgress) => void
 }
@@ -21,7 +21,7 @@ let progressHandlerAttached = false
 
 /** Latest UI callback — updated every convert so progress events stay live. */
 let activeProgress: ((info: ConvertProgress) => void) | undefined
-/** Known media duration in microseconds for percentage fallback. */
+/** Known media duration in microseconds from the app recording timer. */
 let activeDurationUs = 0
 
 function emit(info: ConvertProgress) {
@@ -34,28 +34,28 @@ function attachProgressHandler(ffmpeg: FFmpeg) {
 
   ffmpeg.on('progress', ({ progress, time }) => {
     const processedUs = Number.isFinite(time) && time > 0 ? time : 0
-    let ratio = Number.isFinite(progress) ? progress : NaN
 
-    // WebM often has no duration metadata, so ffmpeg reports progress=0/NaN.
-    // Fall back to processed_time / known_recording_duration from the app timer.
-    if (!Number.isFinite(ratio) || ratio <= 0) {
-      if (activeDurationUs > 0 && processedUs > 0) {
-        ratio = processedUs / activeDurationUs
-      } else {
-        ratio = 0
-      }
+    // Prefer recorded duration: ffmpeg's own progress is often 0/NaN for WebM.
+    let ratio: number
+    if (activeDurationUs > 0) {
+      ratio = processedUs / activeDurationUs
+    } else if (Number.isFinite(progress) && progress >= 0) {
+      ratio = progress
+    } else {
+      ratio = 0
     }
 
     ratio = Math.max(0, Math.min(1, ratio))
     const percent = Math.round(ratio * 100)
+
     const processedSec = processedUs / 1_000_000
     const totalSec = activeDurationUs > 0 ? activeDurationUs / 1_000_000 : 0
     const timeNote =
-      processedSec > 0
-        ? totalSec > 0
-          ? ` · ${processedSec.toFixed(1)}s / ${totalSec.toFixed(1)}s`
-          : ` · ${processedSec.toFixed(1)}s processed`
-        : ''
+      totalSec > 0
+        ? ` · ${processedSec.toFixed(1)}s / ${totalSec.toFixed(1)}s`
+        : processedSec > 0
+          ? ` · ${processedSec.toFixed(1)}s processed`
+          : ''
 
     emit({
       phase: 'converting',
@@ -156,7 +156,29 @@ async function getFfmpeg(): Promise<FFmpeg> {
     )
 
     emit({ phase: 'loading', progress: 0.97, label: 'Initializing FFmpeg…' })
-    await ffmpeg.load({ coreURL, wasmURL })
+    try {
+      // Worker is resolved via Vite (`import.meta.url`). With `base: './'` this
+      // works on both root hosts (CloudFront) and FTP subfolders.
+      await Promise.race([
+        ffmpeg.load({ coreURL, wasmURL }),
+        new Promise<never>((_, reject) => {
+          window.setTimeout(() => {
+            reject(
+              new Error(
+                'FFmpeg initialization timed out. Ensure the site assets (worker scripts) load correctly and that cdn.jsdelivr.net is reachable.',
+              ),
+            )
+          }, 60_000)
+        }),
+      ])
+    } catch (error) {
+      try {
+        ffmpeg.terminate()
+      } catch {
+        // ignore
+      }
+      throw error
+    }
 
     emit({ phase: 'loading', progress: 1, label: 'FFmpeg ready' })
     ffmpegInstance = ffmpeg
@@ -196,13 +218,17 @@ export async function convertWebmToMp4(
     attachProgressHandler(ffmpeg)
     const { fetchFile } = await import('@ffmpeg/util')
 
-    emit({ phase: 'converting', progress: 0, label: 'Preparing video…' })
+    const totalSec = activeDurationUs > 0 ? activeDurationUs / 1_000_000 : 0
+    const startLabel =
+      totalSec > 0
+        ? `Converting to MP4… 0% · 0.0s / ${totalSec.toFixed(1)}s`
+        : 'Converting to MP4… 0%'
+    emit({ phase: 'converting', progress: 0, label: startLabel })
 
     const inputName = 'input.webm'
     const outputName = 'output.mp4'
 
     await ffmpeg.writeFile(inputName, await fetchFile(webmBlob))
-    emit({ phase: 'converting', progress: 0.01, label: 'Converting to MP4… 1%' })
 
     try {
       await runConversion(ffmpeg, [
@@ -226,7 +252,7 @@ export async function convertWebmToMp4(
       } catch {
         // ignore
       }
-      emit({ phase: 'converting', progress: 0.01, label: 'Converting to MP4… (fallback encoder)' })
+      emit({ phase: 'converting', progress: 0, label: startLabel })
       await runConversion(ffmpeg, [
         '-i',
         inputName,
@@ -242,7 +268,11 @@ export async function convertWebmToMp4(
       ])
     }
 
-    emit({ phase: 'converting', progress: 0.98, label: 'Finalizing MP4…' })
+    const doneLabel =
+      totalSec > 0
+        ? `Converting to MP4… 100% · ${totalSec.toFixed(1)}s / ${totalSec.toFixed(1)}s`
+        : 'Converting to MP4… 100%'
+    emit({ phase: 'converting', progress: 1, label: doneLabel })
     const data = await ffmpeg.readFile(outputName)
     await ffmpeg.deleteFile(inputName)
     await ffmpeg.deleteFile(outputName)

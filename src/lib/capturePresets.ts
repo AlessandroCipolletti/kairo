@@ -7,73 +7,80 @@ export type ResolutionPreset = {
   height: number
 }
 
+/** Force even dimensions — safer for MediaRecorder / H.264. */
+function even(n: number): number {
+  const rounded = Math.round(n)
+  return rounded - (rounded % 2)
+}
+
 /** Physical screen pixels the page can target (CSS size × devicePixelRatio). */
 export function detectMaxCaptureSize(): { width: number; height: number } {
   const dpr = window.devicePixelRatio || 1
   return {
-    width: Math.round(window.screen.width * dpr),
-    height: Math.round(window.screen.height * dpr),
+    width: even(window.screen.width * dpr),
+    height: even(window.screen.height * dpr),
   }
-}
-
-function friendlyTier(width: number, height: number): string {
-  const long = Math.max(width, height)
-  if (long >= 5000) return '5K'
-  if (long >= 3500) return '3.5K'
-  if (long >= 3000) return '3K'
-  if (long >= 2400) return '2.5K'
-  if (long >= 2200) return '1440p'
-  if (long >= 1600) return '1080p'
-  if (long >= 1100) return '720p'
-  return `${width}×${height}`
 }
 
 function nearlySame(
   a: { width: number; height: number },
   b: { width: number; height: number },
-  tolerance = 40,
+  tolerance = 24,
 ): boolean {
   return Math.abs(a.width - b.width) <= tolerance && Math.abs(a.height - b.height) <= tolerance
 }
 
+/** Common output sizes for demo videos (16:9), largest first. */
+const STANDARD_16_9 = [
+  { id: '2160', name: '4K', width: 3840, height: 2160 },
+  { id: '1440', name: '1440p', width: 2560, height: 1440 },
+  { id: '1080', name: '1080p', width: 1920, height: 1080 },
+  { id: '720', name: '720p', width: 1280, height: 720 },
+] as const
+
 /**
- * Builds resolution choices up to the detected screen max.
- * Always includes native max; adds half-res and common lower tiers when they fit.
+ * Builds a short list of useful resolutions:
+ * - standard 16:9 sizes that fit the screen (good for sharing)
+ * - native screen size (snapped to even pixels)
  */
 export function buildResolutionPresets(
   max: { width: number; height: number } = detectMaxCaptureSize(),
 ): ResolutionPreset[] {
-  const aspect = max.width / Math.max(1, max.height)
+  const maxW = even(max.width)
+  const maxH = even(max.height)
   const presets: ResolutionPreset[] = []
 
-  const pushUnique = (id: string, width: number, height: number, tierOverride?: string) => {
-    width = Math.round(width)
-    height = Math.round(height)
+  const pushUnique = (id: string, width: number, height: number, label: string) => {
+    width = even(width)
+    height = even(height)
     if (width < 640 || height < 360) return
-    if (width > max.width + 2 || height > max.height + 2) return
+    if (width > maxW + 2 || height > maxH + 2) return
     if (presets.some((p) => nearlySame(p, { width, height }))) return
-    const tier = tierOverride ?? friendlyTier(width, height)
-    presets.push({
-      id,
-      label: `${tier} (${width}×${height})`,
-      width,
-      height,
-    })
+    presets.push({ id, label, width, height })
   }
 
-  pushUnique('max', max.width, max.height)
-  pushUnique('half', max.width / 2, max.height / 2)
+  pushUnique('native', maxW, maxH, `Screen · ${maxW}×${maxH}`)
 
-  for (const { id, name, height } of [
-    { id: '1440', name: '1440p', height: 1440 },
-    { id: '1080', name: '1080p', height: 1080 },
-    { id: '720', name: '720p', height: 720 },
-  ]) {
-    const width = Math.round(height * aspect)
-    pushUnique(id, width, height, name)
+  for (const tier of STANDARD_16_9) {
+    pushUnique(tier.id, tier.width, tier.height, `${tier.name} · ${tier.width}×${tier.height}`)
   }
+
+  // Screen first, then standard sizes largest → smallest.
+  const order = new Map<string, number>([['native', 0]])
+  STANDARD_16_9.forEach((t, i) => order.set(t.id, i + 1))
+  presets.sort((a, b) => (order.get(a.id) ?? 99) - (order.get(b.id) ?? 99))
 
   return presets
+}
+
+/** Prefer 1080p for demos when the screen can deliver it. */
+export function defaultResolutionId(presets: ResolutionPreset[]): string {
+  return (
+    presets.find((p) => p.id === '1080')?.id ??
+    presets.find((p) => p.id === '720')?.id ??
+    presets[0]?.id ??
+    'native'
+  )
 }
 
 export function bitrateForCapture(

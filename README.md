@@ -110,9 +110,11 @@ Best on **Chromium** and **Firefox** desktop. Safari is best-effort (WebM / Medi
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Local Vite dev server |
-| `npm run build` | Production build to `dist/` |
+| `npm run build` | Production build to `dist/` (relative asset paths; works at site root or in a subfolder) |
 | `npm run preview` | Preview the production build |
 | `npm run deploy` | Build + CDK bootstrap/deploy via `.env` |
+
+MP4 conversion downloads `@ffmpeg/core` from jsDelivr on first use, then runs entirely in the browser. The host must allow that CDN (or conversion will fail after the download UI). For FTP uploads, deploy the whole `dist/` folder as-is.
 
 ## License
 

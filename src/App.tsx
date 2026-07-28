@@ -4,6 +4,7 @@ import { useRecorder } from './hooks/useRecorder'
 import { useWebcamPreview } from './hooks/useWebcamPreview'
 import {
   buildResolutionPresets,
+  defaultResolutionId,
   detectMaxCaptureSize,
   type CaptureQuality,
 } from './lib/capturePresets'
@@ -44,7 +45,7 @@ export default function App() {
   } = useRecorder(canvasRef)
 
   const resolutionPresets = useMemo(() => buildResolutionPresets(detectMaxCaptureSize()), [])
-  const [resolutionId, setResolutionId] = useState(() => resolutionPresets[0]?.id ?? 'max')
+  const [resolutionId, setResolutionId] = useState(() => defaultResolutionId(resolutionPresets))
   const [quality, setQuality] = useState<CaptureQuality>('high')
   const [convertState, setConvertState] = useState<'idle' | 'loading' | 'converting'>('idle')
   const [convertSteps, setConvertSteps] = useState<ProgressStep[]>([])
@@ -99,6 +100,7 @@ export default function App() {
       const byId = new Map(previous.map((step) => [step.id, step]))
 
       const existing = byId.get(phase)
+      // Keep the newest detail text even when % is still 0 (e.g. "Encoding…").
       byId.set(phase, {
         id: phase,
         title,
@@ -135,7 +137,15 @@ export default function App() {
     if (!alreadyLoaded) {
       upsertConvertStep('loading', 0, 'Starting download…')
     } else {
-      upsertConvertStep('converting', 0, 'Preparing video…')
+      const totalSec =
+        durationMs > 0 ? (durationMs / 1000).toFixed(1) : null
+      upsertConvertStep(
+        'converting',
+        0,
+        totalSec
+          ? `Converting to MP4… 0% · 0.0s / ${totalSec}s`
+          : 'Converting to MP4… 0%',
+      )
     }
 
     try {
@@ -163,7 +173,13 @@ export default function App() {
       <div className="atmosphere" aria-hidden="true" />
 
       <header className="hero">
-        <img className="brand-mark" src="/kairo-mark.svg" alt="" width={44} height={44} />
+        <img
+          className="brand-mark"
+          src={`${import.meta.env.BASE_URL}kairo-mark.svg`}
+          alt=""
+          width={44}
+          height={44}
+        />
         <h1>Kairo - Demo video recorder</h1>
       </header>
 
